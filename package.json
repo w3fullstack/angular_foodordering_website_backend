@@ -1,0 +1,21 @@
+{
+  "name": "food_ordering_backend",
+  "version": "1.0.0",
+  "description": "Food Ordering Backend",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "Food",
+    "Ordering"
+  ],
+  "author": "alexchitu",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "http": "0.0.0",
+    "mysql": "^2.15.0"
+  }
+}

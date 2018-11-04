@@ -5,16 +5,45 @@
  */
 
 var app = require('./app');
-var http = require('http');
+var fs = require('fs');
+require('./apis/users');
+require('./apis/category');
+require('./apis/items');
+require('./apis/menu');
+require('./apis/restaurant');
+require('./apis/force_exec_query');
+require('./apis/mobileapis');
+require('./apis/order');
+require('./apis/file');
+var UUID = require('node-uuid');
+var io = require('socket.io');
+const helmet = require('helmet');
+
+const local_mode = false;
 
 var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
+app.use(helmet());
 
 /**
  * Create HTTP server.
  */
+var http, server;
 
-var server = http.createServer(app);
+if (local_mode) {
+  http = require('http');
+  server = http.createServer(app);
+  log('Working on LOCAL_MODE');
+} else {
+  var options = {
+    key: fs.readFileSync('./cert/privkey1.pem'),
+    cert: fs.readFileSync('./cert/cert1.pem'),
+    ca: fs.readFileSync('./cert/chain1.pem'),
+  };
+  http = require('https');
+  server = http.createServer(options, app);
+  log('Working on PRODUCTION_MODE');
+}
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -87,3 +116,26 @@ function onListening() {
 function log(data) {
     console.log(data);
 }
+
+
+/** Socket.io integration */
+var client_manager = require('./clients');
+var sio = io.listen(server);
+
+sio.sockets.on('connection', function (client) {
+  // create userid
+  client.user_id = UUID();
+  client_manager.addClient(client);
+
+  // emit onconnected
+  client.emit('onconnected', {id: client.user_id});
+
+  // message
+  client.on('message', function(msg) {
+    
+  });
+  // disconnect
+  client.on('disconnect', function() {
+    client_manager.disconnected(client);
+  });
+});
